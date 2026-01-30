@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>继续教育学时查询系统</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eaeaea;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-align: center;
+            line-height: 1.3;
+        }
+        
+        .school-name {
+            display: block;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+        
+        .window-title {
+            display: block;
+            font-size: 1em;
+        }
+        
+        .query-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+        
+        .query-form input {
+            flex: 1;
+            max-width: 400px;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .query-form button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 0 25px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        .query-form button:hover {
+            background-color: #2980b9;
+        }
+        
+        .result {
+            border: 1px solid #eaeaea;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .result h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .result-label {
+            font-weight: bold;
+            color: #7f8c8d;
+        }
+        
+        .no-result {
+            text-align: center;
+            padding: 20px;
+            color: #e74c3c;
+            display: none;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eaeaea;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>
+                <span class="school-name">2025年度深圳中学龙岗学校</span>
+                <span class="window-title">继续教育学时查询窗口</span>
+            </h1>
+            <p>请输入姓名查询您的继续教育学时情况</p>
+        </header>
+        
+        <div class="query-form">
+            <input type="text" id="searchInput" placeholder="请输入您的姓名">
+            <button id="searchBtn">查询</button>
+        </div>
+        
+        <div class="no-result" id="noResult">
+            未找到该姓名的学时记录，请检查姓名是否正确
+        </div>
+        
+        <div class="result" id="result">
+            <h3>学时查询结果</h3>
+            <div class="result-item">
+                <span class="result-label">姓名：</span>
+                <span id="resultName">-</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">公需科目学时：</span>
+                <span id="resultPublic">-</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">专业科目学时：</span>
+                <span id="resultProfessional">-</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">总学时：</span>
+                <span id="resultTotal">-</span>
+            </div>
+        </div>
+        
+        <footer>
+            <p>数据来源：2025年继续教育学时记录</p>
+        </footer>
+    </div>
+
+    <script>
+        // 原始数据
+        const rawData = [
+            {name: "黄小华", public: 30, professional: 83},
+            {name: "朱世超", public: 30, professional: 54},
+            {name: "郭倩", public: 30, professional: 81},
+            {name: "王卫霞", public: 30, professional: 53},
+            {name: "冯青翠", public: 30, professional: 68},
+            {name: "魏淑红", public: 30, professional: 65},
+            {name: "谭瑟琴", public: 30, professional: 71},
+            {name: "庄晓娜", public: 0, professional: 56},
+            {name: "李然", public: 0, professional: 53},
+            {name: "罗秀蓉", public: 30, professional: 130},
+            {name: "王骞", public: 0, professional: 60},
+            {name: "王宁霞", public: 30, professional: 67},
+            {name: "杨雅婷", public: 0, professional: 56},
+            {name: "陈秀媚", public: 0, professional: 85},
+            {name: "罗婷", public: 30, professional: 53},
+            {name: "许国锦", public: 30, professional: 53},
+            {name: "魏红", public: 30, professional: 57},
+            {name: "李平", public: 30, professional: 57},
+            {name: "樊冬芳", public: 30, professional: 59},
+            {name: "陈小宋", public: 0, professional: 66},
+            {name: "孙芸", public: 30, professional: 60},
+            {name: "李莎", public: 30, professional: 66},
+            {name: "李俏丹", public: 30, professional: 68},
+            {name: "许亿锋", public: 0, professional: 53},
+            {name: "胡波", public: 30, professional: 13},
+            {name: "袁浩鹏", public: 0, professional: 62},
+            {name: "孙丹", public: 0, professional: 59},
+            {name: "王征", public: 0, professional: 76},
+            {name: "单大欣", public: 0, professional: 69},
+            {name: "张家琛", public: 0, professional: 58},
+            {name: "吴丽珊", public: 30, professional: 73},
+            {name: "赵晓飞", public: 30, professional: 53},
+            {name: "张敢", public: 0, professional: 57},
+            {name: "黄晓明", public: 0, professional: 53},
+            {name: "陶海龙", public: 0, professional: 9},
+            {name: "李玲娜", public: 30, professional: 89},
+            {name: "叶丝", public: 0, professional: 53},
+            {name: "赵元帅", public: 30, professional: 54},
+            {name: "黄燕", public: 0, professional: 56},
+            {name: "罗平", public: 30, professional: 65},
+            {name: "王越雷", public: 30, professional: 68},
+            {name: "廖国彬", public: 0, professional: 53},
+            {name: "徐飞", public: 0, professional: 91},
+            {name: "吴耀生", public: 30, professional: 109},
+            {name: "马中燕", public: 0, professional: 50},
+            {name: "周道斌", public: 30, professional: 53},
+            {name: "王琼", public: 0, professional: 56},
+            {name: "郑贵芳", public: 30, professional: 88},
+            {name: "李全山", public: 30, professional: 85},
+            {name: "毛语诗", public: 30, professional: 57},
+            {name: "罗晓捷", public: 0, professional: 80},
+            {name: "何欣", public: 30, professional: 67},
+            {name: "林家妍", public: 30, professional: 78},
+            {name: "余力扬", public: 30, professional: 53},
+            {name: "常志伟", public: 0, professional: 55},
+            {name: "张洁", public: 0, professional: 70},
+            {name: "胡薇", public: 30, professional: 75},
+            {name: "杨雯雯", public: 0, professional: 66},
+            {name: "闫运堂", public: 0, professional: 53},
+            {name: "刘逸飞", public: 0, professional: 52},
+            {name: "余翠", public: 30, professional: 70},
+            {name: "张素荣", public: 30, professional: 63},
+            {name: "石睿", public: 0, professional: 63},
+            {name: "戴秋敏", public: 0, professional: 56},
+            {name: "唐鹏", public: 30, professional: 69},
+            {name: "孙薇", public: 30, professional: 56},
+            {name: "马晓霞", public: 30, professional: 11},
+            {name: "罗璇", public: 30, professional: 53},
+            {name: "王进", public: 30, professional: 53},
+            {name: "黄凯霖", public: 0, professional: 53},
+            {name: "漆胜楠", public: 30, professional: 56},
+            {name: "张幼青", public: 30, professional: 69},
+            {name: "罗砚馨", public: 30, professional: 65},
+            {name: "苑爽", public: 30, professional: 60},
+            {name: "虞佳", public: 30, professional: 56},
+            {name: "张晗", public: 30, professional: 59},
+            {name: "胡涛", public: 30, professional: 45},
+            {name: "张秀波", public: 0, professional: 60},
+            {name: "萧懿旎", public: 0, professional: 56},
+            {name: "张晓容", public: 0, professional: 53},
+            {name: "彭俊威", public: 30, professional: 62},
+            {name: "张淑琴", public: 0, professional: 60},
+            {name: "张丽", public: 30, professional: 57},
+            {name: "王丽", public: 30, professional: 56},
+            {name: "周燚儒", public: 30, professional: 53},
+            {name: "张溶袁", public: 30, professional: 57},
+            {name: "何好", public: 30, professional: 53},
+            {name: "郑雨萌", public: 30, professional: 60},
+            {name: "张寒潇", public: 0, professional: 67},
+            {name: "邓粤峰", public: 30, professional: 69},
+            {name: "陈岑", public: 30, professional: 73},
+            {name: "谭燕", public: 30, professional: 118},
+            {name: "李一丁", public: 0, professional: 118},
+            {name: "陈佳乐", public: 0, professional: 87},
+            {name: "崔浩洋", public: 0, professional: 57},
+            {name: "叶恩伶", public: 30, professional: 61},
+            {name: "董蔚然", public: 30, professional: 106},
+            {name: "贺唯炜", public: 30, professional: 14},
+            {name: "夏芬芬", public: 30, professional: 6},
+            {name: "汪耀明", public: 30, professional: 57},
+            {name: "李嘉颖", public: 0, professional: 69},
+            {name: "薛睿", public: 30, professional: 59},
+            {name: "闫姣", public: 0, professional: 113},
+            {name: "吴佳慧", public: 30, professional: 67},
+            {name: "余河清", public: 30, professional: 79},
+            {name: "李旭嘉", public: 0, professional: 59},
+            {name: "李若婷", public: 0, professional: 58},
+            {name: "张燕芳", public: 30, professional: 51},
+            {name: "陈海裴", public: 0, professional: 58},
+            {name: "吴婷立", public: 30, professional: 62},
+            {name: "李一娇", public: 0, professional: 56},
+            {name: "蒋陆丹", public: 0, professional: 10},
+            {name: "蒋亿加", public: 0, professional: 67},
+            {name: "张婷婷", public: 30, professional: 59},
+            {name: "王钰涵", public: 30, professional: 69},
+            {name: "韩成", public: 30, professional: 60},
+            {name: "洪志波", public: 30, professional: 63},
+            {name: "曾浩", public: 0, professional: 63},
+            {name: "薛存瑞", public: 30, professional: 27},
+            {name: "黄萱", public: 30, professional: 65},
+            {name: "李鑫", public: 30, professional: 59},
+            {name: "曾敏菲", public: 30, professional: 62},
+            {name: "李娟", public: 30, professional: 109},
+            {name: "吴东澄", public: 30, professional: 56},
+            {name: "林锦钿", public: 0, professional: 53},
+            {name: "李勇泉", public: 0, professional: 18},
+            {name: "吴振锋", public: 30, professional: 144},
+            {name: "崔晓敏", public: 30, professional: 60},
+            {name: "张庆冰", public: 30, professional: 73},
+            {name: "卢钰洁", public: 0, professional: 76},
+            {name: "邹海翔", public: 30, professional: 50},
+            {name: "陈俊羲", public: 30, professional: 57},
+            {name: "刘旭华", public: 30, professional: 53},
+            {name: "贾浩泽", public: 30, professional: 59},
+            {name: "曹新梓", public: 30, professional: 53},
+            {name: "张明辉", public: 30, professional: 53},
+            {name: "张毓鹏", public: 30, professional: 69},
+            {name: "李雨晓", public: 30, professional: 68},
+            {name: "王植", public: 0, professional: 59},
+            {name: "王一华", public: 30, professional: 100},
+            {name: "杜渝", public: 30, professional: 76},
+            {name: "温文慧", public: 30, professional: 94},
+            {name: "张清雅", public: 30, professional: 54},
+            {name: "冯筱雨", public: 0, professional: 110},
+            {name: "涂晨晔", public: 30, professional: 100},
+            {name: "何云", public: 30, professional: 57},
+            {name: "龚仁州", public: 30, professional: 54},
+            {name: "黎晓琳", public: 30, professional: 72},
+            {name: "冷家伟", public: 30, professional: 53},
+            {name: "张荣声", public: 30, professional: 57},
+            {name: "舒宁伊", public: 0, professional: 53},
+            {name: "孟柏岑", public: 30, professional: 22},
+            {name: "卢慧", public: 30, professional: 68},
+            {name: "雷雪卿", public: 0, professional: 85},
+            {name: "贺强", public: 0, professional: 53},
+            {name: "刘玉玲", public: 0, professional: 9},
+            {name: "赵璐璐", public: 30, professional: 65}
+        ];
+
+        // 查询功能
+        function searchData() {
+            const name = document.getElementById('searchInput').value.trim();
+            const resultDiv = document.getElementById('result');
+            const noResultDiv = document.getElementById('noResult');
+            
+            if (!name) {
+                alert('请输入姓名');
+                return;
+            }
+            
+            // 查找匹配的数据
+            const result = rawData.find(item => item.name === name);
+            
+            if (result) {
+                // 显示结果
+                document.getElementById('resultName').textContent = result.name;
+                document.getElementById('resultPublic').textContent = result.public;
+                document.getElementById('resultProfessional').textContent = result.professional;
+                document.getElementById('resultTotal').textContent = result.public + result.professional;
+                
+                resultDiv.style.display = 'block';
+                noResultDiv.style.display = 'none';
+            } else {
+                // 显示未找到
+                resultDiv.style.display = 'none';
+                noResultDiv.style.display = 'block';
+            }
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('searchBtn').addEventListener('click', searchData);
+            
+            // 支持按回车键查询
+            document.getElementById('searchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchData();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
